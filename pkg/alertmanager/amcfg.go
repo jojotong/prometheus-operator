@@ -33,6 +33,7 @@ import (
 	"github.com/prometheus-operator/prometheus-operator/pkg/operator"
 	"github.com/prometheus/alertmanager/config"
 	"github.com/prometheus/alertmanager/timeinterval"
+	"github.com/prometheus/common/model"
 	"gopkg.in/yaml.v2"
 
 	v1 "k8s.io/api/core/v1"
@@ -140,6 +141,7 @@ func validateConfigInputs(am *monitoringv1.Alertmanager) error {
 
 func (cg *configGenerator) generateGlobalConfig(
 	ctx context.Context,
+	am *monitoringv1.Alertmanager,
 	amConfig *monitoringv1alpha1.AlertmanagerConfig,
 ) (*alertmanagerConfig, error) {
 	globalAlertmanagerConfig := &alertmanagerConfig{}
@@ -258,6 +260,30 @@ func (cg *configGenerator) generateConfig(
 		return nil, err
 	}
 	return yaml.Marshal(generatedConf)
+}
+
+func (cg *configGenerator) convertGlobalConfig(ctx context.Context, in *monitoringv1.AlertmanagerGlobalConfig, namespace string, crKey types.NamespacedName) (*globalConfig, error) {
+	if in == nil {
+		return nil, nil
+	}
+	global := &globalConfig{}
+	if in.ResolveTimeout != "" {
+		timeout, err := model.ParseDuration(in.ResolveTimeout)
+		if err != nil {
+			return nil, errors.Wrapf(err, "parse resolve timeout: %s", in.ResolveTimeout)
+		}
+		global.ResolveTimeout = &timeout
+	}
+
+	if in.HTTPConfig != nil {
+		httpConfig, err := cg.convertHTTPConfig(ctx, *in.HTTPConfig, crKey)
+		if err != nil {
+			return nil, errors.Wrap(err, "convert http config")
+		}
+		global.HTTPConfig = httpConfig
+	}
+
+	return global, nil
 }
 
 // enforceNamespaceForInhibitRule modifies the inhibition rule to match alerts

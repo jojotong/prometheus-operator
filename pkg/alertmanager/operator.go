@@ -928,7 +928,7 @@ receivers:
 		if err != nil {
 			return errors.Wrap(err, "get AlertmanagerConfig failed")
 		}
-		baseConfig, err = generator.generateGlobalConfig(ctx, globalAmConfig)
+		baseConfig, err = generator.generateGlobalConfig(ctx, am, globalAmConfig)
 		if err != nil {
 			return errors.Wrap(err, "failed to generate global AlertmangerConfig")
 		}

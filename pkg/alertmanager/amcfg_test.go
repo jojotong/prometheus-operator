@@ -26,7 +26,7 @@ import (
 	"github.com/blang/semver/v4"
 	"github.com/go-kit/log"
 	"github.com/google/go-cmp/cmp"
-	monitoringingv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
+	monitoringv1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1"
 	monitoringv1alpha1 "github.com/prometheus-operator/prometheus-operator/pkg/apis/monitoring/v1alpha1"
 	"github.com/prometheus-operator/prometheus-operator/pkg/assets"
 	"github.com/prometheus/alertmanager/config"
@@ -746,9 +746,9 @@ templates: []
 								URL: func(s string) *string {
 									return &s
 								}("http://test.url"),
-								HTTPConfig: &monitoringv1alpha1.HTTPConfig{
-									OAuth2: &monitoringingv1.OAuth2{
-										ClientID: monitoringingv1.SecretOrConfigMap{
+								HTTPConfig: &monitoringv1.HTTPConfig{
+									OAuth2: &monitoringv1.OAuth2{
+										ClientID: monitoringv1.SecretOrConfigMap{
 											ConfigMap: &corev1.ConfigMapKeySelector{
 												LocalObjectReference: corev1.LocalObjectReference{
 													Name: "webhook-client-id",
@@ -1162,7 +1162,7 @@ templates: []
 							SNSConfigs: []monitoringv1alpha1.SNSConfig{
 								{
 									ApiURL: "https://sns.us-east-2.amazonaws.com",
-									Sigv4: &monitoringingv1.Sigv4{
+									Sigv4: &monitoringv1.Sigv4{
 										Region: "us-east-2",
 										AccessKey: &corev1.SecretKeySelector{
 											LocalObjectReference: corev1.LocalObjectReference{

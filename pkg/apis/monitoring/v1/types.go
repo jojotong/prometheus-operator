@@ -1678,15 +1678,6 @@ type AlertmanagerSpec struct {
 	AlertmanagerConfiguration *AlertmanagerConfiguration `json:"alertmanagerConfiguration,omitempty"`
 }
 
-// AlertmanagerConfiguration used to set the global alertmanager config.
-// +k8s:openapi-gen=true
-type AlertmanagerConfiguration struct {
-	// The name of the AlertmanagerConfig resource which holds the global configuration.
-	// It must be in the same namespace as the Alertmanager.
-	// +kubebuilder:validation:MinLength=1
-	Name string `json:"name,omitempty"`
-}
-
 // AlertmanagerList is a list of Alertmanagers.
 // +k8s:openapi-gen=true
 type AlertmanagerList struct {
@@ -1696,6 +1687,115 @@ type AlertmanagerList struct {
 	metav1.ListMeta `json:"metadata,omitempty"`
 	// List of Alertmanagers
 	Items []Alertmanager `json:"items"`
+}
+
+// AlertmanagerConfiguration used to set the global alertmanager config.
+// +k8s:openapi-gen=true
+type AlertmanagerConfiguration struct {
+	// The name of the AlertmanagerConfig resource which holds the global configuration.
+	// It must be in the same namespace as the Alertmanager.
+	// +kubebuilder:validation:MinLength=1
+	Name string `json:"name,omitempty"`
+	// The global config of the Alertmanager.
+	// +optional
+	Global *AlertmanagerGlobalConfig `json:"global,omitempty"`
+	// Files from which custom notification template definitions are read.
+	// The configmaps needs to be in the same namespace as the Alertmanager
+	// +optional
+	Templates []v1.ConfigMapKeySelector `json:"templates,omitempty"`
+}
+
+// AlertmanagerGlobalConfig configures parameters that are valid in all other configuration contexts.
+// See https://prometheus.io/docs/alerting/latest/configuration/#configuration-file
+type AlertmanagerGlobalConfig struct {
+	// ResolveTimeout is the default value used by alertmanager if the alert does
+	// not include EndsAt, after this time passes it can declare the alert as resolved if it has not been updated.
+	// This has no impact on alerts from Prometheus, as they always include EndsAt.
+	ResolveTimeout string `json:"resolveTimeout,omitempty"`
+
+	// HTTP client configuration.
+	HTTPConfig *HTTPConfig `json:"httpConfig,omitempty"`
+
+	// The default SMTP From header field.
+	SMTPFrom string `json:"smtpFrom,omitempty"`
+	// The default hostname to identify to the SMTP server.
+	SMTPHello string `json:"smtpHello,omitempty"`
+	// The default SMTP smarthost used for sending emails, including port number.
+	// Port number usually is 25, or 587 for SMTP over TLS (sometimes referred to as STARTTLS).
+	// Example: smtp.example.org:587
+	SMTPSmarthost string `json:"smtpSmarthost,omitempty"`
+	// SMTP Auth using CRAM-MD5, LOGIN and PLAIN. If empty, Alertmanager doesn't authenticate to the SMTP server.
+	SMTPAuthUsername string `json:"smtpAuthUsername,omitempty"`
+	// The secret's key that contains smtp auth using LOGIN and PLAIN.
+	// The secret needs to be in the same namespace as the Alertmanager
+	SMTPAuthPassword *v1.SecretKeySelector `json:"smtpAuthPassword,omitempty"`
+	// The secret's key that contains smtp auth using CRAM-MD5.
+	// The secret needs to be in the same namespace as the Alertmanager
+	SMTPAuthSecret *v1.SecretKeySelector `json:"smtpAuthSecret,omitempty"`
+	// SMTP Auth using PLAIN.
+	SMTPAuthIdentity string `json:"smtpAuthIdentity,omitempty"`
+	// Note that Go does not support unencrypted connections to remote SMTP endpoints.
+	SMTPRequireTLS *bool `json:"smtpRequireTls,omitempty"`
+
+	// The API URL to use for Slack notifications.
+	SlackAPIURL string `json:"slackAPIURL,omitempty"`
+	// The secret's key that contains slack api key.
+	// The secret needs to be in the same namespace as the Alertmanager
+	SlackAPIKey *v1.SecretKeySelector `json:"slackAPIKey,omitempty"`
+
+	// The URL of Pagerduty.
+	PagerdutyURL string `json:"pagerdutyURL,omitempty"`
+
+	// The API URL of OpsGenie.
+	OpsGenieAPIURL string `json:"opsGenieAPIURL,omitempty"`
+	// The secret's key that contains OpsGenie api key.
+	// The secret needs to be in the same namespace as the Alertmanager
+	OpsGenieAPIKey *v1.SecretKeySelector `json:"opsGenieAPIKey,omitempty"`
+
+	// The API URL of Wechat.
+	WechatAPIURL string `json:"wechatAPIURL,omitempty"`
+	// The secret's key that contains Wechat api key.
+	// The secret needs to be in the same namespace as the Alertmanager
+	WechatAPISecret *v1.SecretKeySelector `json:"wechatAPISecret,omitempty"`
+	// The Wechat API Corp ID.
+	WechatAPICorpID string `json:"wechatAPICorpID,omitempty"`
+
+	// The API URL of VictorOps.
+	VictorOpsAPIURL string `json:"victorOpsAPIURL,omitempty"`
+	// The secret's key that contains VictorOps api key.
+	// The secret needs to be in the same namespace as the Alertmanager
+	VictorOpsAPIKey *v1.SecretKeySelector `json:"victorOpsAPIKey,omitempty"`
+}
+
+// HTTPConfig defines a client HTTP configuration.
+// See https://prometheus.io/docs/alerting/latest/configuration/#http_config
+type HTTPConfig struct {
+	// Authorization header configuration for the client.
+	// This is mutually exclusive with BasicAuth and is only available starting from Alertmanager v0.22+.
+	// +optional
+	Authorization *SafeAuthorization `json:"authorization,omitempty"`
+	// BasicAuth for the client.
+	// This is mutually exclusive with Authorization. If both are defined, BasicAuth takes precedence.
+	// +optional
+	BasicAuth *BasicAuth `json:"basicAuth,omitempty"`
+	// OAuth2 client credentials used to fetch a token for the targets.
+	// +optional
+	OAuth2 *OAuth2 `json:"oauth2,omitempty"`
+	// The secret's key that contains the bearer token to be used by the client
+	// for authentication.
+	// The secret needs to be in the same namespace as the AlertmanagerConfig
+	// object and accessible by the Prometheus Operator.
+	// +optional
+	BearerTokenSecret *v1.SecretKeySelector `json:"bearerTokenSecret,omitempty"`
+	// TLS configuration for the client.
+	// +optional
+	TLSConfig *SafeTLSConfig `json:"tlsConfig,omitempty"`
+	// Optional proxy URL.
+	// +optional
+	ProxyURL string `json:"proxyURL,omitempty"`
+	// FollowRedirects specifies whether the client should follow HTTP 3xx redirects.
+	// +optional
+	FollowRedirects *bool `json:"followRedirects,omitempty"`
 }
 
 // MetadataConfig configures the sending of series metadata to the remote storage.
